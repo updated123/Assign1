@@ -1,6 +1,6 @@
 from collections import defaultdict
-from canonicalize.tools import CanonicalizeTool
-from aggregator.tools import AggregatorTool
+from tools.aggregator import AggregatorTool
+from tools.canonicalize import CanonicalizeTool
 from typing import Any
 
 State = dict  # your workflow state
