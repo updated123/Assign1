@@ -24,26 +24,26 @@ def extract_node(state: State):
     state["extracted"] = out
     return state
 
-# -------------------------------
-# Embed extracted topics
-# -------------------------------
 def embed_node(state: State):
     phrases = [t for item in state["extracted"] for t in item["topics"]]
-    vectors = EmbeddingTool.invoke({"phrases": phrases}).get("vectors", [[0.0]] * len(phrases))
+
+    # MUST send "texts" because EmbedPayload expects texts
+    result = EmbeddingTool.invoke({"texts": phrases})
+
+    vectors = result.get("vectors", [[0.0]] * len(phrases))
+
     state["phrases"] = phrases
     state["vectors"] = vectors
     return state
 
-# -------------------------------
-# Cluster embedded phrases
-# -------------------------------
+
 def cluster_node(state: State):
-    clusters = ClusterTool.invoke({
-        "vectors": state["vectors"],
-        "phrases": state["phrases"]
-    }).get("labels", list(range(len(state["phrases"]))))
+    clusters = ClusteringTool.invoke({"vectors": state["vectors"]})
+    if not clusters or not isinstance(clusters, list):
+        clusters = list(range(len(state["phrases"])))
     state["labels"] = clusters
     return state
+
 
 # -------------------------------
 # Canonicalize each cluster

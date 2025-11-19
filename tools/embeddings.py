@@ -1,22 +1,40 @@
-from langchain.tools import StructuredTool
+# tools/embeddings.py
+
+from typing import List
 from pydantic import BaseModel
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.tools import StructuredTool
 
+
+# -------------------------------
+# Pydantic input schema
+# -------------------------------
 class EmbedPayload(BaseModel):
-    texts: list[str]
+    texts: List[str]   # <-- MUST be "texts" because graph invokes {"texts": ...}
 
-# Use a free HuggingFace model
+
+# -------------------------------
+# Embedding model
+# -------------------------------
 hf_model = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-def embed_texts(texts: list[str]):
-    vectors = hf_model.embed_documents(texts)
-    return vectors
 
+# -------------------------------
+# Function that performs embeddings
+# -------------------------------
+def embed_texts(texts: List[str]):
+    vectors = hf_model.embed_documents(texts)
+    return {"vectors": vectors}
+
+
+# -------------------------------
+# StructuredTool wrapper
+# -------------------------------
 EmbeddingTool = StructuredTool.from_function(
-    func=lambda texts: embed_texts(texts),
-    name="EmbedTexts",
-    description="Embeds list of topic candidate phrases.",
+    func=embed_texts,
+    name="EmbeddingTool",
+    description="Embeds a list of text phrases using HuggingFace embeddings.",
     args_schema=EmbedPayload
 )
